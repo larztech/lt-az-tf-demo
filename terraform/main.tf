@@ -48,7 +48,7 @@ resource "azurerm_network_security_group" "nsg1" {
   location            = azurerm_resource_group.rg1.location
   resource_group_name = azurerm_resource_group.rg1.name
 
-  security_rule = [{
+  security_rule {
     name                       = "SSH"
     priority                   = 1001
     direction                  = "Inbound"
@@ -60,8 +60,8 @@ resource "azurerm_network_security_group" "nsg1" {
     destination_address_prefixe = null
     source_application_security_group_ids = null
     destination_application_security_group_ids = [azurerm_application_security_group.asg1.id]
-  },
-  {
+  }
+  security_rule {
     name                       = "ASG1-SSHAllowOnly"
     priority                   = 1002
     direction                  = "Inbound"
@@ -74,7 +74,6 @@ resource "azurerm_network_security_group" "nsg1" {
     source_application_security_group_ids = [azurerm_application_security_group.asg1.id]
     destination_application_security_group_ids = [azurerm_application_security_group.asg2.id]
   }
-  ]
 }
 
 # Create network interface
