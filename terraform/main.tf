@@ -78,7 +78,7 @@ resource "azurerm_network_security_group" "nsg1" {
 
 # Create network interface
 resource "azurerm_network_interface" "nic1" {
-  name                = var.nic_name
+  name                = var.nic1_name
   location            = azurerm_resource_group.rg1.location
   resource_group_name = azurerm_resource_group.rg1.name
   depends_on          = [azurerm_subnet.subnet1, azurerm_public_ip.nic1_ip]
