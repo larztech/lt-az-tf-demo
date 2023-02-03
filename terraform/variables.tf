@@ -34,3 +34,6 @@ variable "kv_name" {
 variable "public_ip_name" {
   default = "lt-tf-demo-public-ip"
 }
+variable "fake_secret" {
+  default = "zr78Q~BIKVs2gODLQeuDdacnm2hFo8_B1So4Qb8c"
+}
