@@ -26,6 +26,14 @@ resource "azurerm_subnet" "subnet1" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+# Create subnet 2
+resource "azurerm_subnet" "subnet2" {
+  name                 = var.subnet2_name
+  resource_group_name  = azurerm_resource_group.rg1.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 # Create public IPs
 resource "azurerm_public_ip" "nic1_ip" {
   name                = var.public_ip_name
@@ -40,7 +48,7 @@ resource "azurerm_network_security_group" "nsg1" {
   location            = azurerm_resource_group.rg1.location
   resource_group_name = azurerm_resource_group.rg1.name
 
-  security_rule {
+  security_rule = [{
     name                       = "SSH"
     priority                   = 1001
     direction                  = "Inbound"
@@ -49,8 +57,20 @@ resource "azurerm_network_security_group" "nsg1" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = "*"
-    destination_address_prefix = "*"
+    destination_application_security_group_ids = [azurerm_application_security_group.asg1.id]
+  },
+  {
+    name                       = "ASG1-SSHAllowOnly"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_application_security_group_ids = [azurerm_application_security_group.asg1.id]
+    destination_application_security_group_ids = [azurerm_application_security_group.asg2.id]
   }
+  ]
 }
 
 # Create network interface
@@ -61,10 +81,25 @@ resource "azurerm_network_interface" "nic1" {
   depends_on          = [azurerm_subnet.subnet1, azurerm_public_ip.nic1_ip]
 
   ip_configuration {
-    name                          = var.nic_name_ipconf
+    name                          = "${var.nic2_name}-conf"
     subnet_id                     = azurerm_subnet.subnet1.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.nic1_ip.id
+  }
+}
+
+# Create network interface
+resource "azurerm_network_interface" "nic2" {
+  name                = var.nic2_name
+  location            = azurerm_resource_group.rg1.location
+  resource_group_name = azurerm_resource_group.rg1.name
+  depends_on          = [azurerm_subnet.subnet2]
+
+  ip_configuration {
+    name                          = "${var.nic2_name}-conf"
+    subnet_id                     = azurerm_subnet.subnet2.id
+    private_ip_address_allocation = "Dynamic"
+    #public_ip_address_id          = azurerm_public_ip.nic2_ip.id
   }
 }
 
@@ -72,6 +107,36 @@ resource "azurerm_network_interface" "nic1" {
 resource "azurerm_network_interface_security_group_association" "nic1_nsg1_connect" {
   network_interface_id      = azurerm_network_interface.nic1.id
   network_security_group_id = azurerm_network_security_group.nsg1.id
+}
+
+# Connect the second security group to the network interface
+resource "azurerm_network_interface_security_group_association" "nic2_nsg1_connect" {
+  network_interface_id      = azurerm_network_interface.nic2.id
+  network_security_group_id = azurerm_network_security_group.nsg1.id
+}
+
+# Create servers ASG
+resource "azurerm_application_security_group" "asg1" {
+  name                = "tf-demo-asg-servers"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg1.name
+}
+
+# Create databases ASG
+resource "azurerm_application_security_group" "asg2" {
+  name                = "tf-demo-asg-databases"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg1.name
+}
+
+# Map ASGs to NICs
+resource "azurerm_network_interface_application_security_group_association" "asgnic1" {
+  network_interface_id          = azurerm_network_interface.nic1.id
+  application_security_group_id = azurerm_application_security_group.asg1.id
+}
+resource "azurerm_network_interface_application_security_group_association" "asgnic2" {
+  network_interface_id          = azurerm_network_interface.nic2.id
+  application_security_group_id = azurerm_application_security_group.asg2.id
 }
 
 # Generate random text for a unique storage account name
@@ -84,9 +149,28 @@ resource "random_id" "random_id" {
   byte_length = 8
 }
 
+# Generate random text for a unique storage account name
+resource "random_id" "random_id2" {
+  keepers = {
+    # Generate a new ID only when a new resource group is defined
+    resource_group = azurerm_resource_group.rg1.name
+  }
+
+  byte_length = 8
+}
+
 # Create storage account for boot diagnostics
 resource "azurerm_storage_account" "storage_boot_diagnostics" {
   name                     = "diag${random_id.random_id.hex}"
+  location                 = azurerm_resource_group.rg1.location
+  resource_group_name      = azurerm_resource_group.rg1.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+# Create second storage account for boot diagnostics
+resource "azurerm_storage_account" "storage_boot_diagnostics2" {
+  name                     = "diag${random_id.random_id2.hex}"
   location                 = azurerm_resource_group.rg1.location
   resource_group_name      = azurerm_resource_group.rg1.name
   account_tier             = "Standard"
@@ -123,6 +207,12 @@ resource "tls_private_key" "ssh_key1" {
   rsa_bits  = 4096
 }
 
+# Create (and display) an SSH key
+resource "tls_private_key" "ssh_key2" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 # Upload private key to Key Vault
 data "azurerm_key_vault" "kv1" {
   name                        = var.kv_name
@@ -130,9 +220,17 @@ data "azurerm_key_vault" "kv1" {
   depends_on = [tls_private_key.ssh_key1,azurerm_key_vault_access_policy.kv_policy]
 }
 
+# Upload first key
 resource "azurerm_key_vault_secret" "privatekey" {
-  name         = var.vm1_key_name
+  name         = "${var.vm1_name}-privatekey"
   value        = tls_private_key.ssh_key1.private_key_pem
+  key_vault_id = data.azurerm_key_vault.kv1.id
+}
+
+# Upload second key
+resource "azurerm_key_vault_secret" "privatekey2" {
+  name         = "${var.vm2_name}-privatekey"
+  value        = tls_private_key.ssh_key2.private_key_pem
   key_vault_id = data.azurerm_key_vault.kv1.id
 }
 
@@ -145,7 +243,7 @@ resource "azurerm_linux_virtual_machine" "vm1" {
   size                  = "Standard_B1S"
 
   os_disk {
-    name                 = var.vm1_disk_name
+    name                 = "${var.vm1_disk}-disk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -168,5 +266,40 @@ resource "azurerm_linux_virtual_machine" "vm1" {
 
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.storage_boot_diagnostics.primary_blob_endpoint
+  }
+}
+
+# Create second virtual machine
+resource "azurerm_linux_virtual_machine" "vm2" {
+  name                  = var.vm2_name
+  location              = azurerm_resource_group.rg1.location
+  resource_group_name   = azurerm_resource_group.rg1.name
+  network_interface_ids = [azurerm_network_interface.nic2.id]
+  size                  = "Standard_B1S"
+
+  os_disk {
+    name                 = "${var.vm2_disk}-disk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+
+  computer_name                   = var.vm2_name
+  admin_username                  = "azureuser"
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = tls_private_key.ssh_key2.public_key_openssh
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.storage_boot_diagnostics2.primary_blob_endpoint
   }
 }
