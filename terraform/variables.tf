@@ -16,7 +16,7 @@ variable "subnet2_name" {
 variable "security_group_name" {
   default = "lt-tf-demo-nsg"
 }
-variable "nic_name" {
+variable "nic1_name" {
   default = "lt-tf-demo-nic1"
 }
 variable "nic2_name" {
@@ -27,12 +27,6 @@ variable "vm1_name" {
 }
 variable "vm2_name" {
   default = "lt-tf-demo-vm2"
-}
-variable "vm1_key_name" {
-  default = "lt-tf-demo-vm1-privatekey"
-}
-variable "vm2_key_name" {
-  default = "lt-tf-demo-vm2-privatekey"
 }
 variable "kv_name" {
   default = "lt-tf-demo-kv"
