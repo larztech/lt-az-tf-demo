@@ -10,23 +10,29 @@ variable "vnet_name" {
 variable "subnet_name" {
   default = "lt-tf-demo-subnet"
 }
+variable "subnet2_name" {
+  default = "lt-tf-demo-subnet2"
+}
 variable "security_group_name" {
   default = "lt-tf-demo-nsg"
 }
 variable "nic_name" {
   default = "lt-tf-demo-nic1"
 }
-variable "nic_name_ipconf" {
-  default = "lt-tf-demo-nic1-conf"
+variable "nic2_name" {
+  default = "lt-tf-demo-nic2"
 }
 variable "vm1_name" {
   default = "lt-tf-demo-vm1"
 }
-variable "vm1_disk_name" {
-  default = "lt-tf-demo-vm1-disk"
+variable "vm2_name" {
+  default = "lt-tf-demo-vm2"
 }
 variable "vm1_key_name" {
   default = "lt-tf-demo-vm1-privatekey"
+}
+variable "vm2_key_name" {
+  default = "lt-tf-demo-vm2-privatekey"
 }
 variable "kv_name" {
   default = "lt-tf-demo-kv"
