@@ -57,7 +57,7 @@ resource "azurerm_network_security_group" "nsg1" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = "*"
-    destination_address_prefixe = null
+    destination_address_prefix= null
     source_application_security_group_ids = null
     destination_application_security_group_ids = [azurerm_application_security_group.asg1.id]
   }
@@ -70,7 +70,7 @@ resource "azurerm_network_security_group" "nsg1" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = null
-    destination_address_prefixe = null
+    destination_address_prefix= null
     source_application_security_group_ids = [azurerm_application_security_group.asg1.id]
     destination_application_security_group_ids = [azurerm_application_security_group.asg2.id]
   }
