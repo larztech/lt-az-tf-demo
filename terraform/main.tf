@@ -57,6 +57,8 @@ resource "azurerm_network_security_group" "nsg1" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = "*"
+    destination_address_prefixe = null
+    source_application_security_group_ids = null
     destination_application_security_group_ids = [azurerm_application_security_group.asg1.id]
   },
   {
@@ -67,6 +69,8 @@ resource "azurerm_network_security_group" "nsg1" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
+    source_address_prefix      = null
+    destination_address_prefixe = null
     source_application_security_group_ids = [azurerm_application_security_group.asg1.id]
     destination_application_security_group_ids = [azurerm_application_security_group.asg2.id]
   }
@@ -243,7 +247,7 @@ resource "azurerm_linux_virtual_machine" "vm1" {
   size                  = "Standard_B1S"
 
   os_disk {
-    name                 = "${var.vm1_disk}-disk"
+    name                 = "${var.vm1_name}-disk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -278,7 +282,7 @@ resource "azurerm_linux_virtual_machine" "vm2" {
   size                  = "Standard_B1S"
 
   os_disk {
-    name                 = "${var.vm2_disk}-disk"
+    name                 = "${var.vm2_name}-disk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
