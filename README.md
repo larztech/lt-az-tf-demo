@@ -1,2 +1,2 @@
 # lt-az-tf-demo
-Test Azure terraform
+A project to test different terraform setups in Azure. 
