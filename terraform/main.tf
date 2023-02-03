@@ -84,7 +84,7 @@ resource "azurerm_network_interface" "nic1" {
   depends_on          = [azurerm_subnet.subnet1, azurerm_public_ip.nic1_ip]
 
   ip_configuration {
-    name                          = "${var.nic2_name}-conf"
+    name                          = "${var.nic1_name}-conf"
     subnet_id                     = azurerm_subnet.subnet1.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.nic1_ip.id
