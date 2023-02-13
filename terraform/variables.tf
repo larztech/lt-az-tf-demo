@@ -7,11 +7,17 @@ variable "resource_group_name" {
 variable "vnet_name" {
   default = "lt-tf-demo-vnet"
 }
+variable "vnet2_name" {
+  default = "lt-tf-demo-vnet2"
+}
 variable "subnet_name" {
   default = "lt-tf-demo-subnet"
 }
 variable "subnet2_name" {
   default = "lt-tf-demo-subnet2"
+}
+variable "subnet3_name" {
+  default = "lt-tf-demo-subnet3"
 }
 variable "security_group_name" {
   default = "lt-tf-demo-nsg"

@@ -20,7 +20,7 @@ resource "azurerm_virtual_network" "vnet1" {
 
 # Create a second virtual network
 resource "azurerm_virtual_network" "vnet2" {
-  name                = var.vnet_name
+  name                = var.vnet2_name
   address_space       = ["10.1.0.0/16"]
   location            = var.location
   resource_group_name = azurerm_resource_group.rg1.name
@@ -40,6 +40,14 @@ resource "azurerm_subnet" "subnet2" {
   resource_group_name  = azurerm_resource_group.rg1.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefixes     = ["10.0.2.0/24"]
+}
+
+# Create subnet 3
+resource "azurerm_subnet" "subnet3" {
+  name                 = var.subnet3_name
+  resource_group_name  = azurerm_resource_group.rg1.name
+  virtual_network_name = azurerm_virtual_network.vnet2.name
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 # Create public IPs
