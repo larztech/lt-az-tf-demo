@@ -17,6 +17,14 @@ resource "azurerm_virtual_network" "vnet1" {
   location            = var.location
   resource_group_name = azurerm_resource_group.rg1.name
 }
+
+# Create a second virtual network
+resource "azurerm_virtual_network" "vnet2" {
+  name                = var.vnet_name
+  address_space       = ["10.1.0.0/16"]
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg1.name
+}
   
 # Create subnet
 resource "azurerm_subnet" "subnet1" {
