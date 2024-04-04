@@ -272,3 +272,37 @@ resource "azurerm_linux_virtual_machine" "vm1" {
     storage_account_uri = azurerm_storage_account.storage_boot_diagnostics.primary_blob_endpoint
   }
 }
+# Create second virtual machine
+resource "azurerm_linux_virtual_machine" "vm2" {
+  name                  = var.vm2_name
+  location              = azurerm_resource_group.rg1.location
+  resource_group_name   = azurerm_resource_group.rg1.name
+  network_interface_ids = [azurerm_network_interface.nic2.id]
+  size                  = "Standard_B1S"
+
+  os_disk {
+    name                 = "${var.vm2_name}-disk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+
+  computer_name                   = var.vm2_name
+  admin_username                  = "azureuser"
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = tls_private_key.ssh_key2.public_key_openssh
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.storage_boot_diagnostics2.primary_blob_endpoint
+  }
+}
